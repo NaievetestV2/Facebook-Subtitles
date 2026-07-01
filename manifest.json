@@ -22,7 +22,7 @@
     "downloads"
   ],
   "background": {
-    "scripts": ["src/background.js"],
+    "scripts": ["background.js"],
     "persistent": false
   },
   "content_scripts": [
@@ -32,14 +32,14 @@
         "https://m.facebook.com/*",
         "https://web.facebook.com/*"
       ],
-      "js": ["src/content.js"],
-      "css": ["src/content.css"],
+      "js": ["content.js"],
+      "css": ["content.css"],
       "run_at": "document_idle",
       "all_frames": true
     }
   ],
   "browser_action": {
-    "default_popup": "src/popup.html",
+    "default_popup": "popup.html",
     "default_icon": {
       "48": "icons/icon48.png",
       "96": "icons/icon96.png",
@@ -47,7 +47,7 @@
     }
   },
   "options_ui": {
-    "page": "src/options.html",
+    "page": "options.html",
     "open_in_tab": true
   },
   "web_accessible_resources": [
