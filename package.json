@@ -1,6 +1,7 @@
 {
   "name": "facebook-video-subtitles",
   "version": "1.0.0",
+  "type": "module",
   "description": "Browser extension to auto-generate and overlay subtitles on Facebook videos using AI or STT",
   "main": "src/background.js",
   "scripts": {
