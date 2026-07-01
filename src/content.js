@@ -48,7 +48,8 @@
     const videos = document.querySelectorAll(selectors.video);
     videos.forEach(video => {
       if (state.videos.has(video)) return;
-      if (!video.src || video.src === window.location.href) return;
+      if (video.src === window.location.href) return;
+      if (!video.src && !video.srcObject && video.readyState < 2 && video.paused) return;
       
       state.videos.set(video, true);
       attachSubtitles(video);
@@ -64,36 +65,32 @@
         if (!state.subtitles.has(video)) generateSubtitlesForVideo(video, container);
       }, { once: false });
       
-      if (!video.paused && video.readyState >= 2) {
+      if (!video.paused && video.readyState >= 2 && !state.processing) {
         generateSubtitlesForVideo(video, container);
       }
     }
   }
 
   function ensureSubtitleContainer(video) {
-    let container = video.parentElement.querySelector('.fb-subtitle-overlay');
+    let container = document.querySelector('.fb-subtitle-overlay');
     if (!container) {
       container = document.createElement('div');
       container.className = 'fb-subtitle-overlay';
-      styleOverlay(container);
-      video.parentElement.style.position = 'relative';
-      video.parentElement.appendChild(container);
+      document.body.appendChild(container);
     }
     return container;
   }
 
-  function styleOverlay(container) {
-    const s = state.settings;
-    Object.assign(container.style, {
-      position: 'absolute',
-      left: '5%',
-      right: '5%',
-      bottom: s.fontSize > 24 ? '15%' : '10%',
-      textAlign: 'center',
-      pointerEvents: 'none',
-      zIndex: '99999',
-      fontFamily: 'Arial, sans-serif',
-    });
+  function syncOverlayPosition(video, container) {
+    if (!video || !container) return;
+    try {
+      const rect = video.getBoundingClientRect();
+      container.style.position = 'fixed';
+      container.style.left = rect.left + 'px';
+      container.style.top = (rect.bottom - 48) + 'px';
+      container.style.width = rect.width + 'px';
+      container.style.zIndex = '2147483647';
+    } catch (e) {}
   }
 
   async function generateSubtitlesForVideo(video, container) {
@@ -314,6 +311,7 @@
     
     const update = () => {
       if (!cues.length) return;
+      syncOverlayPosition(video, container);
       const t = video.currentTime;
       const cue = cues.find(c => t >= c.start && t <= c.end);
       
@@ -322,7 +320,10 @@
         return;
       }
       
-      if (current && current.textContent === cue.text) return;
+      if (current && current.textContent === cue.text) {
+        syncOverlayPosition(video, container);
+        return;
+      }
       
       if (current) current.remove();
       const el = document.createElement('div');
@@ -330,13 +331,28 @@
       el.textContent = cue.text;
       container.appendChild(el);
       current = el;
+      syncOverlayPosition(video, container);
     };
     
-    video.addEventListener('timeupdate', update);
-    video.addEventListener('seeked', update);
-    video.addEventListener('pause', () => {
+    const onTimeUpdate = () => { update(); };
+    const onSeeked = () => { update(); };
+    const onScroll = () => { syncOverlayPosition(video, container); };
+    
+    video.addEventListener('timeupdate', onTimeUpdate);
+    video.addEventListener('seeked', onSeeked);
+    video.addEventListener('pause', () => { if (current) current.remove(); });
+    
+    window.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', onScroll);
+    video.addEventListener('ended', () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      video.removeEventListener('timeupdate', onTimeUpdate);
+      video.removeEventListener('seeked', onSeeked);
       if (current) current.remove();
     });
+    
+    update();
   }
 
   function postStatus(container, msg) {
