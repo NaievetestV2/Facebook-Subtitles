@@ -63,6 +63,10 @@
       video.addEventListener('play', () => {
         if (!state.subtitles.has(video)) generateSubtitlesForVideo(video, container);
       }, { once: false });
+      
+      if (!video.paused && video.readyState >= 2) {
+        generateSubtitlesForVideo(video, container);
+      }
     }
   }
 
@@ -105,10 +109,13 @@
       if (cues) {
         state.subtitles.set(video, cues);
         syncSubtitles(video, container, cues);
+      } else {
+        postStatus(container, 'No speech detected');
       }
     } catch (error) {
       postStatus(container, 'Subtitle generation failed');
       console.error('[FB-Subtitles]', error);
+      state.subtitles.delete(video);
     } finally {
       state.processing = false;
     }
