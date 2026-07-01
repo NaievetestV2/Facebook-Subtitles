@@ -23,7 +23,7 @@ const state = {
   videos: new Map(),
   subtitles: new Map(),
   settings: {},
-  processing: false,
+  processing: new Map(),
   lastVideoCount: 0,
 };
 
@@ -42,7 +42,7 @@ const selectors = {
     setTimeout(processVideos, 1500);
     setTimeout(processVideos, 4000);
     setInterval(() => {
-      if (!state.processing) processVideos();
+      if (!state.processing.size) processVideos();
     }, 8000);
   }
 
@@ -65,7 +65,14 @@ const selectors = {
   }
 
   function observeDOM() {
-    const observer = new MutationObserver(() => processVideos());
+    let rafId = null;
+    const observer = new MutationObserver(() => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        processVideos();
+        rafId = null;
+      });
+    });
     observer.observe(document.documentElement, { childList: true, subtree: true });
   }
 
@@ -118,7 +125,7 @@ const selectors = {
         if (!state.subtitles.has(video)) generateSubtitlesForVideo(video, container);
       }, { once: false });
       
-      if (!video.paused && video.readyState >= 2 && !state.processing) {
+      if (!video.paused && video.readyState >= 2 && !state.processing.has(video)) {
         console.log('[FB-Subtitles] already playing, auto-starting');
         generateSubtitlesForVideo(video, container);
       }
@@ -148,8 +155,8 @@ const selectors = {
   }
 
   async function generateSubtitlesForVideo(video, container) {
-    if (state.processing) return;
-    state.processing = true;
+    if (state.processing.has(video)) return;
+    state.processing.set(video, true);
     
     postStatus(container, 'Generating subtitles...');
     
@@ -168,7 +175,7 @@ const selectors = {
       console.error('[FB-Subtitles]', error);
       state.subtitles.delete(video);
     } finally {
-      state.processing = false;
+      state.processing.delete(video);
     }
   }
 
