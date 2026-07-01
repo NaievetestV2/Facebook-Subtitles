@@ -1,6 +1,3 @@
-# Facebook-Subtitles
-An extension that allows its users to generate Facebook Reels subtitles and translate them with ease for free.
-
 # Facebook Video Subtitles
 
 A browser extension that automatically generates subtitles for Facebook videos (including Reels) using AI or browser-based speech-to-text. The subtitles are overlaid on the video in real time, and can optionally be translated into other languages.
@@ -27,9 +24,8 @@ Load `dist/` as a temporary add-on in Firefox (`about:debugging#/runtime/this-fi
 
 ### Firefox for Android
 
-1. Build or download the `.xpi` from releases.
-2. In Firefox Android, navigate to `about:addons`.
-3. Tap the gear icon, choose "Install from file", and select the `.xpi`.
+1. Build the `.xpi` via `npm run xpi`.
+2. In Firefox Android, open `about:addons`, tap the gear, choose "Install from file", and select the `.xpi`.
 
 ### Chrome / Edge
 
@@ -49,6 +45,12 @@ npm run build   # Build dist/
 npm run xpi     # Create packages/facebook-video-subtitles.xpi
 npm run zip     # Create packages/facebook-video-subtitles.zip
 ```
+
+## Troubleshooting
+
+- **Popup is tiny or empty**: Make sure you loaded the `dist/` folder, not the project root. The `popup.html`, `popup.css`, `options.html`, and `options.css` must all be inside `dist/`. If you had an older version installed, remove it before reloading `dist/`.
+- **Subtitles fail after a few seconds**: Use the "Browser Speech API" provider in Options first to verify the extension works. If audio capture fails (common on some Android builds), switch to browser SpeechRecognition as a fallback.
+- **No subtitles at all**: Check the browser console for `[FB-Subtitles]` errors. Ensure you are on `facebook.com` or `m.facebook.com` and playing a video.
 
 ## Usage
 

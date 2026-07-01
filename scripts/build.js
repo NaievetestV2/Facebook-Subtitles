@@ -38,6 +38,10 @@ async function build() {
     copy('icons', 'dist/icons');
     if (fs.existsSync('assets')) copy('assets', 'dist/assets');
     copy('src/content.css', 'dist/content.css');
+    copy('src/popup.html', 'dist/popup.html');
+    copy('src/popup.css', 'dist/popup.css');
+    copy('src/options.html', 'dist/options.html');
+    copy('src/options.css', 'dist/options.css');
     console.log('Build complete. Load dist/ as an unpacked extension.');
     await ctx.dispose();
   }
