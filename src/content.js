@@ -6,8 +6,8 @@ const log = (...args) => { if (DEBUG) console.log('[FB-Subtitles]', ...args); };
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'ping') return sendResponse({ ok: true });
-  if (message.type === 'getVideoCount') return sendResponse({ count: getAllVideos().length });
-  if (message.type === 'generateSubtitlesNow') {
+  if (message.type === 'getVideoCount') return sendResponse({ count: getLastVideoCount() });
+  if (message.type === 'generateSubtitlesNow' || message.type === 'generateSubtitles') {
     const videos = getAllVideos();
     const video = videos[0];
     if (video) {
@@ -24,6 +24,7 @@ const state = {
   subtitles: new Map(),
   settings: {},
   processing: false,
+  lastVideoCount: 0,
 };
 
 const selectors = {
@@ -38,8 +39,11 @@ const selectors = {
     observeDOM();
     processVideos();
     injectStyles();
-    setTimeout(processVideos, 2000);
-    setTimeout(processVideos, 5000);
+    setTimeout(processVideos, 1500);
+    setTimeout(processVideos, 4000);
+    setInterval(() => {
+      if (!state.processing) processVideos();
+    }, 8000);
   }
 
   function loadSettings() {
@@ -67,6 +71,7 @@ const selectors = {
 
   function processVideos() {
     const allVideos = getAllVideos();
+    state.lastVideoCount = allVideos.length;
     console.log('[FB-Subtitles] processVideos found', allVideos.length, 'candidate videos');
     allVideos.forEach(video => {
       if (state.videos.has(video)) return;
@@ -78,21 +83,27 @@ const selectors = {
     });
   }
 
+  function getLastVideoCount() {
+    return state.lastVideoCount;
+  }
+
   function getAllVideos() {
     const results = new Set();
-    const addFromRoot = (root) => {
-      if (!root) return;
+    const selectors = [
+      'video',
+      '[data-visualcompletion="media-vc-image"] video',
+      '[role="feed"] video',
+      '[data-video-id] video',
+      'video[playsinline]',
+      'div[data-video-id] video',
+      'div[data-video-url] video',
+      'div[data-video-source] video'
+    ];
+    for (const sel of selectors) {
       try {
-        const vids = root.querySelectorAll('video');
-        vids.forEach(v => results.add(v));
+        document.querySelectorAll(sel).forEach(v => results.add(v));
       } catch (e) {}
-    };
-    addFromRoot(document);
-    document.querySelectorAll('*').forEach(el => {
-      try {
-        addFromRoot(el.shadowRoot);
-      } catch (e) {}
-    });
+    }
     return Array.from(results);
   }
 
@@ -165,30 +176,54 @@ const selectors = {
     return new Promise((resolve, reject) => {
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const source = audioCtx.createMediaElementSource(video);
-        const dest = audioCtx.createMediaStreamDestination();
-        source.connect(dest);
-        source.connect(audioCtx.destination);
+        
+        let source;
+        try {
+          source = audioCtx.createMediaElementSource(video);
+        } catch (e) {
+          source = null;
+        }
+        
+        let stream;
+        if (source) {
+          const dest = audioCtx.createMediaStreamDestination();
+          source.connect(dest);
+          source.connect(audioCtx.destination);
+          stream = dest.stream;
+        } else if (video.captureStream) {
+          stream = video.captureStream();
+        } else if (video.mozCaptureStream) {
+          stream = video.mozCaptureStream();
+        } else {
+          audioCtx.close();
+          return reject(new Error('No audio stream available. Enable autoplay permissions or use Browser Speech API.'));
+        }
         
         const chunks = [];
-        const recorder = new MediaRecorder(dest.stream, { mimeType: 'audio/webm;codecs=opus' });
+        const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
         
         recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
         recorder.onstop = () => {
           const blob = new Blob(chunks, { type: 'audio/webm' });
-          source.disconnect();
+          if (source) source.disconnect();
           audioCtx.close();
           resolve(blob);
         };
         
         recorder.start();
         const stopRecorder = () => { if (recorder.state === 'recording') recorder.stop(); };
+        
         video.addEventListener('pause', stopRecorder, { once: true });
         video.addEventListener('ended', stopRecorder, { once: true });
         
-        video.addEventListener('ended', () => { if (recorder.state === 'recording') recorder.stop(); }, { once: true });
+        setTimeout(() => {
+          if (recorder.state === 'recording') {
+            stopRecorder();
+          }
+        }, 30000);
+        
       } catch (e) {
-        reject(new Error('Audio capture failed: ensure browser allows microphone/audio capture'));
+        reject(new Error('Audio capture failed: ' + e.message));
       }
     });
   }
@@ -258,21 +293,36 @@ const selectors = {
     
     return new Promise((resolve, reject) => {
       const results = [];
+      let maxTime = 30;
+      let timer;
+      
       recognition.onresult = (event) => {
         const result = event.results[event.results.length - 1];
         results.push(result[0].transcript);
       };
       
-      recognition.onerror = (e) => reject(new Error(`Speech API: ${e.error}`));
-      recognition.onend = () => resolve([{ start: 0, end: video.duration, text: results.join(' ') }]);
+      recognition.onerror = (e) => {
+        clearTimeout(timer);
+        reject(new Error(`Speech API: ${e.error}`));
+      };
       
-      recognition.start();
-      video.play().catch(() => {});
+      recognition.onend = () => {
+        clearTimeout(timer);
+        const duration = (video.duration && video.duration !== Infinity) ? video.duration : maxTime;
+        resolve([{ start: 0, end: duration, text: results.join(' ') }]);
+      };
       
-      video.addEventListener('ended', () => {
+      try {
+        recognition.start();
+      } catch (e) {
+        return reject(new Error('Speech recognition failed to start'));
+      }
+      
+      timer = setTimeout(() => {
         recognition.stop();
-        resolve([{ start: 0, end: video.duration, text: results.join(' ') }]);
-      }, { once: true });
+      }, maxTime * 1000);
+      
+      if (!video.paused) video.play().catch(() => {});
     });
   }
 
