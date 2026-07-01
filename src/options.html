@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FB Subtitles - Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <h1>FB Subtitles Settings</h1>
+
+    <div class="card">
+      <h2>STT Provider</h2>
+      <div class="field">
+        <label>Provider</label>
+        <select id="stt-provider">
+          <option value="ai">AI (OpenAI/Groq/Deepgram/AssemblyAI)</option>
+          <option value="browser">Browser Speech API</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>AI Provider</label>
+        <select id="ai-provider">
+          <option value="openai">OpenAI (Whisper)</option>
+          <option value="groq">Groq (Whisper)</option>
+          <option value="deepgram">Deepgram</option>
+          <option value="assemblyai">AssemblyAI</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>API Key</label>
+        <input type="password" id="api-key" placeholder="sk-...">
+        <span class="hint">Your key is stored locally and never shared.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Translation</h2>
+      <div class="field">
+        <label>Source Language</label>
+        <select id="source-lang">
+          <option value="en-US">English (US)</option>
+          <option value="en-GB">English (UK)</option>
+          <option value="es-ES">Spanish</option>
+          <option value="fr-FR">French</option>
+          <option value="de-DE">German</option>
+          <option value="hi-IN">Hindi</option>
+          <option value="ja-JP">Japanese</option>
+          <option value="ko-KR">Korean</option>
+          <option value="pt-BR">Portuguese (BR)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Target Language (for translation)</label>
+        <select id="target-lang">
+          <option value="es-ES">Spanish</option>
+          <option value="en-US">English (US)</option>
+          <option value="fr-FR">French</option>
+          <option value="de-DE">German</option>
+          <option value="hi-IN">Hindi</option>
+          <option value="ja-JP">Japanese</option>
+          <option value="ko-KR">Korean</option>
+          <option value="pt-BR">Portuguese (BR)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Appearance</h2>
+      <div class="field">
+        <label>Font Size: <span id="font-size-val">18</span>px</label>
+        <input type="range" id="font-size" min="12" max="32" value="18">
+      </div>
+      <div class="field">
+        <label>Text Color</label>
+        <input type="color" id="text-color" value="#ffffff">
+      </div>
+      <div class="field">
+        <label>Background Opacity: <span id="bg-opacity-val">0.8</span></label>
+        <input type="range" id="bg-opacity" min="0" max="1" step="0.1" value="0.8">
+      </div>
+      <div class="field">
+        <label>Automatically generate subtitles</label>
+        <input type="checkbox" id="auto-generate" checked>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="save" class="btn primary">Save Settings</button>
+      <button id="test" class="btn secondary">Test API Connection</button>
+    </div>
+
+    <div id="message"></div>
+
+    <div class="card">
+      <h2>Export / Import</h2>
+      <button id="export" class="btn secondary">Export Settings</button>
+      <button id="import" class="btn secondary">Import Settings</button>
+      <input type="file" id="import-file" accept=".json" style="display:none">
+    </div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

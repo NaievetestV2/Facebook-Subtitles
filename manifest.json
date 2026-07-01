@@ -1,0 +1,56 @@
+{
+  "manifest_version": 2,
+  "name": "Facebook Video Subtitles",
+  "version": "1.0.0",
+  "description": "Auto-generate and overlay subtitles on Facebook videos using AI or STT",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "fb-subtitles@naievetest.dev",
+      "strict_min_version": "57.0"
+    }
+  },
+  "icons": {
+    "48": "icons/icon48.png",
+    "96": "icons/icon96.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": [
+    "storage",
+    "activeTab",
+    "https://*.facebook.com/*",
+    "https://*.fbcdn.net/*",
+    "downloads"
+  ],
+  "background": {
+    "scripts": ["src/background.js"],
+    "persistent": false
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.facebook.com/*",
+        "https://m.facebook.com/*",
+        "https://web.facebook.com/*"
+      ],
+      "js": ["src/content.js"],
+      "css": ["src/content.css"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
+  "browser_action": {
+    "default_popup": "src/popup.html",
+    "default_icon": {
+      "48": "icons/icon48.png",
+      "96": "icons/icon96.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "options_ui": {
+    "page": "src/options.html",
+    "open_in_tab": true
+  },
+  "web_accessible_resources": [
+    "assets/*"
+  ]
+}

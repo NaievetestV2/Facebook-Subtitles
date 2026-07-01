@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FB Subtitles</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup">
+    <header>
+      <h1>FB Subtitles</h1>
+      <span id="status" class="badge">Ready</span>
+    </header>
+    
+    <div class="section">
+      <h2>Current Video</h2>
+      <div id="video-info">No video detected</div>
+      <button id="btn-generate" class="btn primary">Generate Subtitles</button>
+      <button id="btn-download" class="btn secondary" disabled>Download VTT</button>
+    </div>
+
+    <div class="section">
+      <h2>Quick Settings</h2>
+      <div class="field">
+        <label>Provider</label>
+        <select id="stt-provider">
+          <option value="ai">AI (API Key)</option>
+          <option value="browser">Browser Speech API</option>
+          <option value="deepgram">Deepgram</option>
+          <option value="assemblyai">AssemblyAI</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Font Size</label>
+        <input type="range" id="font-size" min="12" max="32" value="18">
+        <span id="font-size-val">18</span>px
+      </div>
+      <div class="field">
+        <label>Translate</label>
+        <input type="checkbox" id="translate-enabled" checked>
+      </div>
+    </div>
+
+    <footer>
+      <a href="options.html" target="_blank">Settings</a>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

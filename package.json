@@ -1,0 +1,40 @@
+{
+  "name": "facebook-video-subtitles",
+  "version": "1.0.0",
+  "description": "Browser extension to auto-generate and overlay subtitles on Facebook videos using AI or STT",
+  "main": "src/background.js",
+  "scripts": {
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit || true",
+    "test": "jest",
+    "validate": "npm run lint && npm run test",
+    "build": "node scripts/build.js",
+    "dev": "node scripts/build.js --watch",
+    "zip": "node scripts/zip.js"
+  },
+  "keywords": [
+    "browser-extension",
+    "firefox",
+    "chrome",
+    "subtitles",
+    "facebook",
+    "stt",
+    "speech-to-text"
+  ],
+  "author": "NaievetestV2",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NaievetestV2/Facebook-Subtitles"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.54.0",
+    "jest": "^29.7.0",
+    "puppeteer": "^21.5.0",
+    "archiver": "^7.0.0"
+  },
+  "license": "MIT",
+  "private": false
+}
