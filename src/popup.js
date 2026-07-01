@@ -6,10 +6,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('translate-enabled').checked = settings.translateEnabled;
 
   const updateVideoInfo = async () => {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab) {
+        document.getElementById('video-info').textContent = 'No active tab';
+        return;
+      }
       const res = await chrome.tabs.sendMessage(tab.id, { type: 'getVideoCount' });
-      document.getElementById('video-info').textContent = res.count
+      document.getElementById('video-info').textContent = (res && res.count)
         ? `${res.count} video(s) detected`
         : 'No video detected';
     } catch (e) {
@@ -26,21 +30,33 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('btn-generate').addEventListener('click', async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab) {
+      document.getElementById('video-info').textContent = 'Open a Facebook tab first';
+      return;
+    }
     chrome.tabs.sendMessage(tab.id, { type: 'generateSubtitles', options: {} }, (res) => {
       if (chrome.runtime.lastError) {
         document.getElementById('video-info').textContent = 'Error: ' + chrome.runtime.lastError.message;
         return;
       }
-      if (res && res.vtt) {
-        document.getElementById('btn-download').disabled = false;
+      if (res && res.error) {
+        document.getElementById('video-info').textContent = res.error;
+        return;
+      }
+      if (res && res.ok) {
         document.getElementById('video-info').textContent = 'Subtitles generated!';
+        document.getElementById('btn-download').disabled = false;
       }
     });
   });
 
-  document.getElementById('btn-download').addEventListener('click', () => {
-    chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-      chrome.tabs.sendMessage(tab.id, { type: 'downloadVTT' });
+  document.getElementById('btn-download').addEventListener('click', async () => {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab) return;
+    chrome.tabs.sendMessage(tab.id, { type: 'downloadVTT' }, (res) => {
+      if (chrome.runtime.lastError) {
+        document.getElementById('video-info').textContent = 'Error: ' + chrome.runtime.lastError.message;
+      }
     });
   });
 });
