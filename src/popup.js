@@ -5,6 +5,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('font-size-val').textContent = settings.fontSize;
   document.getElementById('translate-enabled').checked = settings.translateEnabled;
 
+  const updateVideoInfo = async () => {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    try {
+      const res = await chrome.tabs.sendMessage(tab.id, { type: 'getVideoCount' });
+      document.getElementById('video-info').textContent = res.count
+        ? `${res.count} video(s) detected`
+        : 'No video detected';
+    } catch (e) {
+      document.getElementById('video-info').textContent = 'No video detected';
+    }
+  };
+
+  updateVideoInfo();
+
   document.getElementById('font-size').addEventListener('input', async (e) => {
     document.getElementById('font-size-val').textContent = e.target.value;
     await setSetting('fontSize', parseInt(e.target.value));

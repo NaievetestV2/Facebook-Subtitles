@@ -1,24 +1,45 @@
 (function() {
   'use strict';
 
-  const state = {
-    videos: new Map(),
-    subtitles: new Map(),
-    settings: {},
-    processing: false,
-  };
+const DEBUG = true;
+const log = (...args) => { if (DEBUG) console.log('[FB-Subtitles]', ...args); };
 
-  const selectors = {
-    video: 'video, [data-video-id], [role="feed"] video, ._5r51 video, video[playsinline]',
-    reel: '[data-visualcompletion="media-vc-image"] video, .x1lliihq video, video[data-visualcompletion]',
-    story: '[role="feed"] video',
-  };
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'ping') return sendResponse({ ok: true });
+  if (message.type === 'getVideoCount') return sendResponse({ count: getAllVideos().length });
+  if (message.type === 'generateSubtitlesNow') {
+    const videos = getAllVideos();
+    const video = videos[0];
+    if (video) {
+      const container = ensureSubtitleContainer();
+      generateSubtitlesForVideo(video, container).then(() => sendResponse({ ok: true })).catch(sendResponse);
+    } else {
+      sendResponse({ error: 'no video' });
+    }
+    return true;
+  }
+});
+const state = {
+  videos: new Map(),
+  subtitles: new Map(),
+  settings: {},
+  processing: false,
+};
+
+const selectors = {
+  video: 'video',
+  reel: '[data-visualcompletion="media-vc-image"] video',
+  story: '[role="feed"] video',
+  all: 'video, [data-visualcompletion="media-vc-image"] video, [role="feed"] video, [data-video-id] video, video[playsinline]',
+};
 
   function init() {
     loadSettings();
     observeDOM();
     processVideos();
     injectStyles();
+    setTimeout(processVideos, 2000);
+    setTimeout(processVideos, 5000);
   }
 
   function loadSettings() {
@@ -41,31 +62,53 @@
 
   function observeDOM() {
     const observer = new MutationObserver(() => processVideos());
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['src', 'poster'] });
+    observer.observe(document.documentElement, { childList: true, subtree: true });
   }
 
   function processVideos() {
-    const videos = document.querySelectorAll(selectors.video);
-    videos.forEach(video => {
+    const allVideos = getAllVideos();
+    console.log('[FB-Subtitles] processVideos found', allVideos.length, 'candidate videos');
+    allVideos.forEach(video => {
       if (state.videos.has(video)) return;
       if (video.src === window.location.href) return;
       if (!video.src && !video.srcObject && video.readyState < 2 && video.paused) return;
-      
       state.videos.set(video, true);
+      console.log('[FB-Subtitles] attaching to video', video.src || 'srcObject');
       attachSubtitles(video);
     });
+  }
+
+  function getAllVideos() {
+    const results = new Set();
+    const addFromRoot = (root) => {
+      if (!root) return;
+      try {
+        const vids = root.querySelectorAll('video');
+        vids.forEach(v => results.add(v));
+      } catch (e) {}
+    };
+    addFromRoot(document);
+    document.querySelectorAll('*').forEach(el => {
+      try {
+        addFromRoot(el.shadowRoot);
+      } catch (e) {}
+    });
+    return Array.from(results);
   }
 
   function attachSubtitles(video) {
     video.removeAttribute('crossorigin');
     const container = ensureSubtitleContainer(video);
+    console.log('[FB-Subtitles] attached listeners to video');
     
     if (state.settings.autoGenerate) {
       video.addEventListener('play', () => {
+        console.log('[FB-Subtitles] play event fired');
         if (!state.subtitles.has(video)) generateSubtitlesForVideo(video, container);
       }, { once: false });
       
       if (!video.paused && video.readyState >= 2 && !state.processing) {
+        console.log('[FB-Subtitles] already playing, auto-starting');
         generateSubtitlesForVideo(video, container);
       }
     }
