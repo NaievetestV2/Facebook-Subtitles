@@ -1,12 +1,14 @@
 {
   "manifest_version": 2,
   "name": "Facebook Video Subtitles",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Auto-generate and overlay subtitles on Facebook videos using AI or STT",
+  "author": "NaievetestV2",
+  "homepage_url": "https://github.com/NaievetestV2/Facebook-Subtitles",
   "browser_specific_settings": {
     "gecko": {
       "id": "fb-subtitles@naievetest.dev",
-      "strict_min_version": "57.0"
+      "strict_min_version": "78.0"
     }
   },
   "icons": {
@@ -19,6 +21,8 @@
     "activeTab",
     "https://*.facebook.com/*",
     "https://*.fbcdn.net/*",
+    "https://*.akamaihd.net/*",
+    "https://*.cdninstagram.com/*",
     "downloads"
   ],
   "background": {
@@ -30,7 +34,8 @@
       "matches": [
         "https://www.facebook.com/*",
         "https://m.facebook.com/*",
-        "https://web.facebook.com/*"
+        "https://web.facebook.com/*",
+        "https://fb.watch/*"
       ],
       "js": ["content.js"],
       "css": ["content.css"],

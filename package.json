@@ -11,7 +11,9 @@
     "validate": "npm run lint && npm run test",
     "build": "node scripts/build.js",
     "dev": "node scripts/build.js --watch",
-    "zip": "node scripts/zip.js"
+    "xpi": "node scripts/build.js && node scripts/pack.js xpi",
+    "zip": "node scripts/build.js && node scripts/pack.js zip",
+    "pack": "node scripts/pack.js"
   },
   "keywords": [
     "browser-extension",
