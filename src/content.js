@@ -135,12 +135,13 @@
         };
         
         recorder.start();
-        video.addEventListener('timeupdate', check, { once: true });
-        
-        function check() {
-          if (video.paused || video.ended) recorder.stop();
-          else setTimeout(() => video.dispatchEvent(new Event('check')), 1000);
-        }
+        let checkHandler;
+        const startCheck = () => {
+          if (video.paused || video.ended) { recorder.stop(); video.removeEventListener('timeupdate', checkHandler); return; }
+          setTimeout(() => video.dispatchEvent(new Event('check')), 1000);
+        };
+        checkHandler = startCheck;
+        video.addEventListener('check', startCheck);
         
         video.addEventListener('ended', () => { if (recorder.state === 'recording') recorder.stop(); }, { once: true });
       } catch (e) {
