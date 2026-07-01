@@ -25,10 +25,30 @@ npm run build
 
 Load `dist/` as a temporary add-on in Firefox (`about:debugging#/runtime/this-firefox`).
 
+### Firefox for Android
+
+1. Build or download the `.xpi` from releases.
+2. In Firefox Android, navigate to `about:addons`.
+3. Tap the gear icon, choose "Install from file", and select the `.xpi`.
+
+### Chrome / Edge
+
+1. Open `chrome://extensions` or `edge://extensions`.
+2. Enable Developer mode.
+3. Click "Load unpacked" and point to the `dist/` folder, or drag the `.zip` onto the page.
+
 ## Install (from AMO / CWS)
 
 - Firefox Add-ons: https://addons.mozilla.org/
 - Chrome Web Store: (Coming soon)
+
+## Package
+
+```bash
+npm run build   # Build dist/
+npm run xpi     # Create packages/facebook-video-subtitles.xpi
+npm run zip     # Create packages/facebook-video-subtitles.zip
+```
 
 ## Usage
 

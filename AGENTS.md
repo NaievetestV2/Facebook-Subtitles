@@ -95,35 +95,27 @@ If something is impossible with current architecture (e.g., AudioContext capture
 - Verify font size, colors change immediately
 - Test settings persistence (Refresh page -> check settings saved)
 
-## Known Limitations
+## Installation
 
-- Firefox MV2 is required for current implementation (manifest_version 2)
-- Audio capture may be blocked by Facebook's CORS on some video sources; browser Speech API fallback mitigates this
-- Firefox for Android uses same code paths; ensure `webkitAudioContext` fallbacks exist
-- Deepgram and AssemblyAI require upload endpoints - large blobs may need chunking
+### Firefox desktop
+Load `dist/` as an unpacked temporary add-on, or install the `.xpi`.
 
-## Future Enhancements (do NOT implement unless asked)
+### Firefox for Android
+1. Build the `.xpi` via `npm run xpi`.
+2. In Firefox Android, open `about:addons`, tap the gear, choose "Install from file", and select the `.xpi`.
 
-- Manifest v3 migration (mv2 -> mv3 service worker)
-- Offscreen document for audio processing in MV3
-- Download VTT/SRT export
-- Batch import/export for multiple providers
-- Firefox Add-ons store listings and screenshots
+### Chrome / Edge
+Load `dist/` as unpacked, or drag the `.zip` onto `chrome://extensions`.
 
-## Commit Policy
+## Packaging
 
-- Never push without explicit user request
-- Break commits by feature: "add OpenWebWhisper provider", "fix subtitle sync for seek events"
-- Do not include credentials in commits
+```bash
+npm run build     # Build dist/
+npm run xpi       # Generate .xpi for Firefox / Firefox for Android
+npm run zip       # Generate .zip for Chrome / Edge
+```
 
-## Browser Compatibility
-
-| Browser | Status |
-|---------|--------|
-| Firefox 57+ | Fully supported |
-| Firefox for Android | Supported (test UI in landscape) |
-| Chrome 88+ | Supported (needs mv3 migration for future) |
-| Edge 88+ | Supported (Chromium-based) |
+The packed files are created in the `packages/` directory.
 
 ## Reference Docs
 
